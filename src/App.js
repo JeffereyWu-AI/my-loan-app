@@ -185,7 +185,7 @@ const HomeScreen = ({ onTopUp, balance }) => {
             <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-md">
             </div>
             <div>
-              <p className="font-semibold text-lg">A. Point</p>
+              <p className="font-semibold text-lg">DSB. Point</p>
               <p className="font-bold text-2xl">221</p>
             </div>
           </div>
@@ -208,8 +208,8 @@ const HomeScreen = ({ onTopUp, balance }) => {
             {/* 分割線和底部信息 */}
             <div className="flex space-x-4 mt-3 pt-3 border-t border-white/20 text-sm">
               <p className="flex-1 text-gray-200">Daily earnings <span className="text-green-300">●●●●</span></p>
-              <p className="border-l border-white/20 pl-4 flex-1 text-gray-200">AlipayHK balance</p>
-              <p className="border-l border-white/20 pl-4 flex-1 text-gray-200">Ant Bank eM+</p>
+              <p className="border-l border-white/20 pl-4 flex-1 text-gray-200">DSB Pay balance</p>
+              <p className="border-l border-white/20 pl-4 flex-1 text-gray-200">DSB eM+</p>
             </div>
           </div>
         </div>
@@ -219,7 +219,7 @@ const HomeScreen = ({ onTopUp, balance }) => {
       <div className="grid grid-cols-5 gap-y-4 px-4 py-2 bg-white text-center">
         <IconGridItem icon={<IconBolt className="h-8 w-8 text-blue-600" />} text="Bill Payment" />
         <IconGridItem icon={<IconArrowLeftRight className="h-8 w-8 text-blue-600" />} text="Remittance" />
-        <IconGridItem icon={<IconLandmark className="h-8 w-8 text-blue-600" />} text="Ant Bank" />
+        <IconGridItem icon={<IconLandmark className="h-8 w-8 text-blue-600" />} text="DS Bank" />
         <IconGridItem icon={<IconShoppingCart className="h-8 w-8 text-orange-500" />} text="Taobao" />
         <IconGridItem icon={<IconCreditCard className="h-8 w-8 text-blue-600" />} text="Credit Card Repayment" />
         <IconGridItem icon={<IconTag className="h-8 w-8 text-red-500" />} text="Mainland Deals" />
