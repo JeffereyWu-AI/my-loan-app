@@ -315,21 +315,6 @@ const LoanDetailsScreen = ({ onConfirm, user }) => {
   );
 };
 
-/**
- * 處理中頁面
- */
-// const ProcessingScreen = ({ processingStep }) => {
-//   return (
-//     <div className="h-full flex flex-col items-center justify-center p-4">
-//       {processingStep !== '貸款已批核' ? (
-//         <IconSpinner className="h-12 w-12 text-purple-600" />
-//       ) : (
-//         <IconCheckCircle className="h-12 w-12 text-green-500" />
-//       )}
-//       <p className="text-lg font-semibold text-gray-700 mt-6">{processingStep}</p>
-//     </div>
-//   );
-// };
 
 /**
  * 處理中頁面
@@ -517,29 +502,6 @@ export default function App() {
     );
   };
 
-  // // 處理異步流程
-  // useEffect(() => {
-  //   if (currentScreen === 'Processing') {
-  //     // 模擬異步操作
-  //     setProcessingStep('TU 信貸記錄檢查中...');
-  //     const timer1 = setTimeout(() => {
-  //       setProcessingStep('貸款處理中...');
-  //     }, 2000);
-  //     const timer2 = setTimeout(() => {
-  //       setProcessingStep('貸款已批核');
-  //     }, 4000);
-  //     const timer3 = setTimeout(() => {
-  //       setCurrentScreen('LoanConfirm');
-  //     }, 5000);
-
-  //     // 清除定時器
-  //     return () => {
-  //       clearTimeout(timer1);
-  //       clearTimeout(timer2);
-  //       clearTimeout(timer3);
-  //     };
-  //   }
-  // }, [currentScreen]);
 
   // 處理批核邏輯
   useEffect(() => {
@@ -606,21 +568,6 @@ export default function App() {
   };
 
 
-  // // 渲染當前屏幕
-  // const renderScreen = () => {
-  //   switch (currentScreen) {
-  //     case 'Home':
-  //       return <HomeScreen onTopUp={handleTopUp} balance={balance} />;
-  //     case 'LoanDetails':
-  //       return <LoanDetailsScreen onConfirm={handleConfirmLoan} />;
-  //     case 'Processing':
-  //       return <ProcessingScreen processingStep={processingStep} />;
-  //     case 'LoanConfirm':
-  //       return <LoanConfirmScreen amount={selectedLoanAmount} onConfirm={handleFinalConfirm} onCancel={handleCancelLoan} />;
-  //     default:
-  //       return <HomeScreen onTopUp={handleTopUp} balance={balance} />;
-  //   }
-  // };
 
   // 渲染主內容
   const renderScreen = () => {
@@ -649,6 +596,13 @@ export default function App() {
   return (
     // 模擬手機外框和屏幕
     <div className="flex justify-center items-center h-screen bg-gray-200">
+    {/* ✅ 根據是否為登入畫面動態修改樣式 */}
+    {currentScreen === 'Login' ? (
+      // 登入時 — 直接全屏顯示，沒有圓角、沒有邊框效果
+      <div className="w-full h-full bg-gradient-to-br from-purple-600 to-blue-500 flex flex-col justify-center items-center text-white p-6">
+        {renderScreen()}
+      </div>
+    ) : (
       <div className="w-full max-w-sm h-full max-h-[850px] bg-gray-100 shadow-2xl rounded-2xl overflow-hidden relative flex flex-col">
         {/* 屏幕內容 */}
         <div className="flex-1 overflow-hidden relative">
@@ -690,6 +644,7 @@ export default function App() {
           onSelectLoan={handleSelectLoan}
         />
       </div>
+    )}
     </div>
   );
 }
