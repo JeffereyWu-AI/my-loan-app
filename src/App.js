@@ -249,6 +249,59 @@ const HomeScreen = ({ onTopUp, balance }) => {
 };
 
 /**
+ * 授權同意頁
+ */
+const ConsentScreen = ({ onAgree, onCancel }) => {
+  return (
+    <div className="h-full flex flex-col bg-gray-100">
+      {/* 頂部標題 */}
+      <div className="p-4 bg-white border-b border-gray-200">
+        <h2 className="text-lg font-bold text-center">Consent Authorization</h2>
+      </div>
+
+      {/* 條款內容 */}
+      <div className="flex-1 overflow-y-auto p-4 text-gray-700 text-sm leading-relaxed">
+        <h3 className="text-base font-semibold mb-3">Personal Data Collection & Credit Check</h3>
+        <p className="mb-2">
+          To proceed with your loan application, DSB Pay needs to obtain your credit and
+          identity information from TransUnion (TU). By continuing, you consent to DSB Pay
+          collecting, using, and storing your personal data in accordance with applicable
+          privacy regulations.
+        </p>
+        <p className="mb-2">
+          The data retrieved may include your credit report, payment history, and other
+          identification-related information for the purpose of assessing your credit
+          eligibility.
+        </p>
+        <p className="mb-2">
+          Your data will not be shared with third parties except as necessary to process
+          your loan request or as required by law. You may withdraw your consent at any
+          time by contacting DSB Pay support.
+        </p>
+        <p className="mt-4">
+          Please read the above terms carefully. Click “Agree” below if you consent to
+          proceed with credit data retrieval.
+        </p>
+      </div>
+
+      {/* 底部按鈕區 */}
+      <div className="p-4 bg-white border-t border-gray-200 flex space-x-3">
+        <button
+          className="w-1/3 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-full transition duration-150"
+          onClick={onCancel}>
+          Cancel
+        </button>
+        <button
+          className="w-2/3 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-full transition duration-150"
+          onClick={onAgree}>
+          Agree
+        </button>
+      </div>
+    </div>
+  );
+};
+
+/**
  * 貸款詳情頁
  */
 const LoanDetailsScreen = ({ onConfirm, user }) => {
@@ -261,25 +314,25 @@ const LoanDetailsScreen = ({ onConfirm, user }) => {
     'Jackey Ng': 'B456***(7)',
   };
 
-  const userName = user?.name || '未知用戶';
+  const userName = user?.name || 'Unknown User';
   const idCard = idCardMap[userName] || '********';
 
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 bg-white border-b border-gray-100">
-        <h2 className="text-lg font-bold text-center">申請貸款</h2>
+        <h2 className="text-lg font-bold text-center">Apply for Loan</h2>
       </div>
       <div className="flex-1 overflow-y-auto p-4 bg-gray-100">
 
         {/* 用戶信息 */}
         <div className="bg-white rounded-lg p-4 mb-4 shadow-sm">
-          <InfoRow label="姓名" value={userName} />
-          <InfoRow label="香港身份證" value={idCard} />
+          <InfoRow label="Full Name" value={userName} />
+          <InfoRow label="Hong Kong ID" value={idCard} />
         </div>
 
         {/* 貸款金額選擇 */}
         <div className="mt-4">
-          <h3 className="text-base font-semibold text-gray-700 mb-3">選擇貸款金額</h3>
+          <h3 className="text-base font-semibold text-gray-700 mb-3">Select Loan Amount</h3>
           {loanOptions.map((amount) => (
             <button
               key={amount}
@@ -308,7 +361,7 @@ const LoanDetailsScreen = ({ onConfirm, user }) => {
           }`}
           disabled={!selectedAmount}
           onClick={() => onConfirm(selectedAmount)}>
-          確認
+          Confirm
         </button>
       </div>
     </div>
@@ -322,9 +375,9 @@ const LoanDetailsScreen = ({ onConfirm, user }) => {
 const ProcessingScreen = ({ processingStep }) => {
   let iconElement;
 
-  if (processingStep === '貸款已批核') {
+  if (processingStep === 'Loan Approved') {
     iconElement = <IconCheckCircle className="h-12 w-12 text-green-500" />;
-  } else if (processingStep === '貸款不獲批核') {
+  } else if (processingStep === 'Loan Application Rejected') {
     iconElement = <IconX className="h-12 w-12 text-red-500" />;
   } else {
     iconElement = <IconSpinner className="h-12 w-12 text-purple-600" />;
@@ -345,14 +398,14 @@ const LoanConfirmScreen = ({ amount, onConfirm, onCancel }) => {
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 bg-white border-b border-gray-100">
-        <h2 className="text-lg font-bold text-center">確認貸款</h2>
+        <h2 className="text-lg font-bold text-center">Confirm Loan</h2>
       </div>
       <div className="flex-1 overflow-y-auto p-4 bg-gray-100 flex flex-col items-center justify-center text-center">
-        <p className="text-base text-gray-500">已批核貸款金額</p>
+        <p className="text-base text-gray-500">Approved Loan Amount</p>
         <p className="text-4xl font-bold text-gray-800 my-3">
           HKD ${new Intl.NumberFormat('en-US').format(amount)}
         </p>
-        <p className="text-sm text-gray-500">請確認是否接受此筆貸款。</p>
+        <p className="text-sm text-gray-500">Please confirm if you wish to proceed with this loan.</p>
       </div>
 
       {/* 底部確認按鈕 */}
@@ -360,12 +413,12 @@ const LoanConfirmScreen = ({ amount, onConfirm, onCancel }) => {
         <button
           className="w-1/3 py-4 rounded-full text-gray-700 font-bold bg-gray-200 hover:bg-gray-300 transition duration-150"
           onClick={onCancel}>
-          取消
+          Cancel
         </button>
         <button
           className="w-2/3 py-4 rounded-full text-white font-bold bg-purple-600 hover:bg-purple-700 transition duration-150"
           onClick={onConfirm}>
-          確認並提取
+          Confirm & Withdraw
         </button>
       </div>
     </div>
@@ -399,7 +452,7 @@ const TopUpModal = ({ visible, onClose, onSelectLoan }) => {
         className="bg-white w-full rounded-t-2xl p-5 pt-6"
         onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-5">
-          <h3 className="text-lg font-bold">增值</h3>
+          <h3 className="text-lg font-bold">Top Up</h3>
           <button onClick={onClose} className="p-1">
             <IconX className="h-6 w-6 text-gray-500" />
           </button>
@@ -450,9 +503,17 @@ export default function App() {
   const [balance, setBalance] = useState(1234.56); // 初始餘額
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedLoanAmount, setSelectedLoanAmount] = useState(0);
-  const [processingStep, setProcessingStep] = useState('TU 信貸記錄檢查中...');
+  const [processingStep, setProcessingStep] = useState('Checking TU Credit Record...');
   const [user, setUser] = useState(null); // 保存登入用戶物件 {name: string}
   const [error, setError] = useState('');
+
+  // ✅ 把 balance 變成一個物件，用 username 作為 key
+  const [balances, setBalances] = useState({
+    'Chan Tai Man': 1234.56,
+    'Jackey Ng': 500.0,
+  });
+
+  
 
   // 登入畫面元件
   const LoginScreen = () => {
@@ -468,7 +529,7 @@ export default function App() {
         setError('');
         setCurrentScreen('Home');
       } else {
-        setError('用戶名或密碼錯誤 😅');
+        setError('Invalid username or password 😅');
       }
     };
 
@@ -479,14 +540,14 @@ export default function App() {
         <div className="w-full max-w-xs bg-white text-gray-800 rounded-xl p-6 shadow-md">
           <input
             type="text"
-            placeholder="請輸入用戶名"
+            placeholder="Please enter username"
             className="w-full mb-3 p-2 border rounded"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
           <input
             type="password"
-            placeholder="請輸入密碼"
+            placeholder="Please enter password"
             className="w-full mb-3 p-2 border rounded"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -495,7 +556,7 @@ export default function App() {
           <button
             onClick={handleLogin}
             className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded transition duration-150">
-            登入
+            Login
           </button>
         </div>
       </div>
@@ -508,12 +569,12 @@ export default function App() {
     if (currentScreen === 'Processing') {
       // 根據不同用戶決定結果
       const approved = user?.name === 'Chan Tai Man';
-      setProcessingStep('TU 信貸記錄檢查中...');
+      setProcessingStep('Checking TU Credit Record...');
       const timer1 = setTimeout(() => {
-        setProcessingStep('貸款處理中...');
+        setProcessingStep('Processing Loan Application...');
       }, 1500);
       const timer2 = setTimeout(() => {
-        setProcessingStep(approved ? '貸款已批核' : '貸款不獲批核');
+        setProcessingStep(approved ? 'Loan Approved' : 'Loan Application Rejected');
       }, 3000);
       const timer3 = setTimeout(() => {
         if (approved) {
@@ -536,10 +597,11 @@ export default function App() {
     setIsModalVisible(true);
   };
 
+
   // 2. 在彈窗中選擇 "Loan"
   const handleSelectLoan = () => {
     setIsModalVisible(false);
-    setCurrentScreen('LoanDetails');
+    setCurrentScreen('Consent');
   };
 
   // 3. 在貸款詳情頁點擊 "Confirm"
@@ -548,12 +610,20 @@ export default function App() {
     setCurrentScreen('Processing');
   };
 
-  // 4. 在最終確認頁點擊 "Confirm"
+
+  // 當貸款批核並確認時更新該用戶餘額
   const handleFinalConfirm = () => {
-    setBalance((prevBalance) => prevBalance + selectedLoanAmount);
+    if (!user?.name) return;
+    setBalances(prev => ({
+      ...prev,
+      [user.name]: (prev[user.name] || 0) + selectedLoanAmount,
+    }));
     setCurrentScreen('Home');
-    setSelectedLoanAmount(0); // 重置
+    setSelectedLoanAmount(0);
   };
+
+
+
 
   // 5. 處理取消貸款
   const handleCancelLoan = () => {
@@ -569,13 +639,18 @@ export default function App() {
 
 
 
+  // Helper: 取得當前使用者餘額
+  const currentBalance = user?.name ? balances[user.name] : 0;
+
   // 渲染主內容
   const renderScreen = () => {
     switch (currentScreen) {
       case 'Login':
         return <LoginScreen />;
       case 'Home':
-        return <HomeScreen onTopUp={handleTopUp} balance={balance} />;
+        return <HomeScreen onTopUp={handleTopUp} balance={currentBalance} />;
+      case 'Consent':
+        return <ConsentScreen onAgree={() => setCurrentScreen('LoanDetails')} onCancel={() => setCurrentScreen('Home')} />;
       case 'LoanDetails':
         return <LoanDetailsScreen onConfirm={handleConfirmLoan} user={user}/>;
       case 'Processing':
@@ -589,7 +664,7 @@ export default function App() {
           />
         );
       default:
-        return <HomeScreen onTopUp={handleTopUp} balance={balance} />;
+        return <HomeScreen onTopUp={handleTopUp} balance={currentBalance} />;
     }
   };
 
