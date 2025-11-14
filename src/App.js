@@ -118,11 +118,13 @@ const IconChevronRight = (props) => (
     <polyline points="9 18 15 12 9 6"></polyline>
   </svg>
 );
+
 const IconCheckCircle = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>
   </svg>
 );
+
 const IconSpinner = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin" {...props}>
     <line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
@@ -224,7 +226,6 @@ const HomeScreen = ({ onTopUp, balance }) => {
         <IconGridItem icon={<IconCreditCard className="h-8 w-8 text-blue-600" />} text="Credit Card Repayment" />
         <IconGridItem icon={<IconTag className="h-8 w-8 text-red-500" />} text="Mainland Deals" />
         <IconGridItem icon={<IconPlane className="h-8 w-8 text-green-500" />} text="Travel Zone" />
-        <IconGridItem icon={<IconAward className="h-8 w-8 text-purple-500" />} text="A+ Rewards" />
         <IconGridItem icon={<IconLayoutGrid className="h-8 w-8 text-gray-500" />} text="View All" />
       </div>
 
@@ -250,9 +251,18 @@ const HomeScreen = ({ onTopUp, balance }) => {
 /**
  * 貸款詳情頁
  */
-const LoanDetailsScreen = ({ onConfirm }) => {
+const LoanDetailsScreen = ({ onConfirm, user }) => {
   const [selectedAmount, setSelectedAmount] = useState(null);
   const loanOptions = [10000, 20000, 50000];
+
+  // 根據登入用戶決定身份證資料
+  const idCardMap = {
+    'Chan Tai Man': 'A123***(4)',
+    'Jackey Ng': 'B456***(7)',
+  };
+
+  const userName = user?.name || '未知用戶';
+  const idCard = idCardMap[userName] || '********';
 
   return (
     <div className="h-full flex flex-col">
@@ -260,10 +270,11 @@ const LoanDetailsScreen = ({ onConfirm }) => {
         <h2 className="text-lg font-bold text-center">申請貸款</h2>
       </div>
       <div className="flex-1 overflow-y-auto p-4 bg-gray-100">
+
         {/* 用戶信息 */}
         <div className="bg-white rounded-lg p-4 mb-4 shadow-sm">
-          <InfoRow label="姓名" value="Chan Tai Man" />
-          <InfoRow label="香港身份證" value="A123***(4)" />
+          <InfoRow label="姓名" value={userName} />
+          <InfoRow label="香港身份證" value={idCard} />
         </div>
 
         {/* 貸款金額選擇 */}
@@ -307,14 +318,36 @@ const LoanDetailsScreen = ({ onConfirm }) => {
 /**
  * 處理中頁面
  */
+// const ProcessingScreen = ({ processingStep }) => {
+//   return (
+//     <div className="h-full flex flex-col items-center justify-center p-4">
+//       {processingStep !== '貸款已批核' ? (
+//         <IconSpinner className="h-12 w-12 text-purple-600" />
+//       ) : (
+//         <IconCheckCircle className="h-12 w-12 text-green-500" />
+//       )}
+//       <p className="text-lg font-semibold text-gray-700 mt-6">{processingStep}</p>
+//     </div>
+//   );
+// };
+
+/**
+ * 處理中頁面
+ */
 const ProcessingScreen = ({ processingStep }) => {
+  let iconElement;
+
+  if (processingStep === '貸款已批核') {
+    iconElement = <IconCheckCircle className="h-12 w-12 text-green-500" />;
+  } else if (processingStep === '貸款不獲批核') {
+    iconElement = <IconX className="h-12 w-12 text-red-500" />;
+  } else {
+    iconElement = <IconSpinner className="h-12 w-12 text-purple-600" />;
+  }
+
   return (
     <div className="h-full flex flex-col items-center justify-center p-4">
-      {processingStep !== '貸款已批核' ? (
-        <IconSpinner className="h-12 w-12 text-purple-600" />
-      ) : (
-        <IconCheckCircle className="h-12 w-12 text-green-500" />
-      )}
+      {iconElement}
       <p className="text-lg font-semibold text-gray-700 mt-6">{processingStep}</p>
     </div>
   );
@@ -427,35 +460,114 @@ const InfoRow = ({ label, value }) => (
 // 主應用程序組件
 // ---------------------------------
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState('Home'); // 'Home', 'LoanDetails', 'Processing', 'LoanConfirm'
+  // const [currentScreen, setCurrentScreen] = useState('Home'); // 'Home', 'LoanDetails', 'Processing', 'LoanConfirm'
+  const [currentScreen, setCurrentScreen] = useState('Login'); // 初始改成登入畫面
   const [balance, setBalance] = useState(1234.56); // 初始餘額
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedLoanAmount, setSelectedLoanAmount] = useState(0);
   const [processingStep, setProcessingStep] = useState('TU 信貸記錄檢查中...');
+  const [user, setUser] = useState(null); // 保存登入用戶物件 {name: string}
+  const [error, setError] = useState('');
 
-  // 處理異步流程
+  // 登入畫面元件
+  const LoginScreen = () => {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+
+    const handleLogin = () => {
+      if (
+        (username === 'Chan Tai Man' || username === 'Jackey Ng') &&
+        password === 'dsbai'
+      ) {
+        setUser({ name: username });
+        setError('');
+        setCurrentScreen('Home');
+      } else {
+        setError('用戶名或密碼錯誤 😅');
+      }
+    };
+
+    return (
+      <div className="flex flex-col justify-center items-center h-full bg-gradient-to-br from-purple-600 to-blue-500 text-white p-6">
+        <h1 className="text-3xl font-bold mb-8">DSB Pay Login</h1>
+
+        <div className="w-full max-w-xs bg-white text-gray-800 rounded-xl p-6 shadow-md">
+          <input
+            type="text"
+            placeholder="請輸入用戶名"
+            className="w-full mb-3 p-2 border rounded"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="請輸入密碼"
+            className="w-full mb-3 p-2 border rounded"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+          <button
+            onClick={handleLogin}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded transition duration-150">
+            登入
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // // 處理異步流程
+  // useEffect(() => {
+  //   if (currentScreen === 'Processing') {
+  //     // 模擬異步操作
+  //     setProcessingStep('TU 信貸記錄檢查中...');
+  //     const timer1 = setTimeout(() => {
+  //       setProcessingStep('貸款處理中...');
+  //     }, 2000);
+  //     const timer2 = setTimeout(() => {
+  //       setProcessingStep('貸款已批核');
+  //     }, 4000);
+  //     const timer3 = setTimeout(() => {
+  //       setCurrentScreen('LoanConfirm');
+  //     }, 5000);
+
+  //     // 清除定時器
+  //     return () => {
+  //       clearTimeout(timer1);
+  //       clearTimeout(timer2);
+  //       clearTimeout(timer3);
+  //     };
+  //   }
+  // }, [currentScreen]);
+
+  // 處理批核邏輯
   useEffect(() => {
     if (currentScreen === 'Processing') {
-      // 模擬異步操作
+      // 根據不同用戶決定結果
+      const approved = user?.name === 'Chan Tai Man';
       setProcessingStep('TU 信貸記錄檢查中...');
       const timer1 = setTimeout(() => {
         setProcessingStep('貸款處理中...');
-      }, 2000);
+      }, 1500);
       const timer2 = setTimeout(() => {
-        setProcessingStep('貸款已批核');
-      }, 4000);
+        setProcessingStep(approved ? '貸款已批核' : '貸款不獲批核');
+      }, 3000);
       const timer3 = setTimeout(() => {
-        setCurrentScreen('LoanConfirm');
-      }, 5000);
-
-      // 清除定時器
+        if (approved) {
+          setCurrentScreen('LoanConfirm');
+        } else {
+          // 不批核就返回主畫面
+          setCurrentScreen('Home');
+        }
+      }, 4500);
       return () => {
         clearTimeout(timer1);
         clearTimeout(timer2);
         clearTimeout(timer3);
       };
     }
-  }, [currentScreen]);
+  }, [currentScreen, user]);
 
   // 1. 點擊 "Top up"
   const handleTopUp = () => {
@@ -487,17 +599,48 @@ export default function App() {
     setSelectedLoanAmount(0); // 重置
   };
 
-  // 渲染當前屏幕
+  // 登出
+  const handleLogout = () => {
+    setUser(null);
+    setCurrentScreen('Login');
+  };
+
+
+  // // 渲染當前屏幕
+  // const renderScreen = () => {
+  //   switch (currentScreen) {
+  //     case 'Home':
+  //       return <HomeScreen onTopUp={handleTopUp} balance={balance} />;
+  //     case 'LoanDetails':
+  //       return <LoanDetailsScreen onConfirm={handleConfirmLoan} />;
+  //     case 'Processing':
+  //       return <ProcessingScreen processingStep={processingStep} />;
+  //     case 'LoanConfirm':
+  //       return <LoanConfirmScreen amount={selectedLoanAmount} onConfirm={handleFinalConfirm} onCancel={handleCancelLoan} />;
+  //     default:
+  //       return <HomeScreen onTopUp={handleTopUp} balance={balance} />;
+  //   }
+  // };
+
+  // 渲染主內容
   const renderScreen = () => {
     switch (currentScreen) {
+      case 'Login':
+        return <LoginScreen />;
       case 'Home':
         return <HomeScreen onTopUp={handleTopUp} balance={balance} />;
       case 'LoanDetails':
-        return <LoanDetailsScreen onConfirm={handleConfirmLoan} />;
+        return <LoanDetailsScreen onConfirm={handleConfirmLoan} user={user}/>;
       case 'Processing':
         return <ProcessingScreen processingStep={processingStep} />;
       case 'LoanConfirm':
-        return <LoanConfirmScreen amount={selectedLoanAmount} onConfirm={handleFinalConfirm} onCancel={handleCancelLoan} />;
+        return (
+          <LoanConfirmScreen
+            amount={selectedLoanAmount}
+            onConfirm={handleFinalConfirm}
+            onCancel={handleCancelLoan}
+          />
+        );
       default:
         return <HomeScreen onTopUp={handleTopUp} balance={balance} />;
     }
@@ -531,7 +674,12 @@ export default function App() {
             </div>
 
             <IconGridItem icon={<IconBus className="h-6 w-6 text-gray-600" />} text="Transport" />
-            <IconGridItem icon={<IconUser className="h-6 w-6 text-gray-600" />} text="Me" />
+
+            <button onClick={handleLogout} className="flex flex-col items-center p-1 focus:outline-none">
+              <IconUser className="h-6 w-6 text-gray-600" />
+              <p className="text-xs mt-1.5 text-center text-gray-700">Logout</p>
+            </button>
+
           </div>
         )}
 
