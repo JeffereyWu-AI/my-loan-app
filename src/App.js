@@ -391,34 +391,77 @@ const ProcessingScreen = ({ processingStep }) => {
   );
 };
 
+
 /**
- * 貸款確認頁
+ * Loan Confirmation Page
+ * — simulate real-world loan confirmation flow with T&C
  */
 const LoanConfirmScreen = ({ amount, onConfirm, onCancel }) => {
+  const formatted = new Intl.NumberFormat('en-US').format(amount);
+
   return (
-    <div className="h-full flex flex-col">
-      <div className="p-4 bg-white border-b border-gray-100">
-        <h2 className="text-lg font-bold text-center">Confirm Loan</h2>
-      </div>
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-100 flex flex-col items-center justify-center text-center">
-        <p className="text-base text-gray-500">Approved Loan Amount</p>
-        <p className="text-4xl font-bold text-gray-800 my-3">
-          HKD ${new Intl.NumberFormat('en-US').format(amount)}
-        </p>
-        <p className="text-sm text-gray-500">Please confirm if you wish to proceed with this loan.</p>
+    <div className="h-full flex flex-col bg-gray-100">
+      {/* Header */}
+      <div className="p-4 bg-white border-b border-gray-200">
+        <h2 className="text-lg font-bold text-center text-gray-800">Confirm Loan</h2>
       </div>
 
-      {/* 底部確認按鈕 */}
-      <div className="p-4 bg-white border-t border-gray-100 flex items-center space-x-3">
+      {/* Main content */}
+      <div className="flex-1 overflow-y-auto p-6 pb-24 text-gray-800">
+        {/* Approved amount highlight */}
+        <div className="bg-white rounded-2xl shadow-sm p-6 text-center mb-5">
+          <p className="text-base text-gray-500">Approved Loan Amount</p>
+          <p className="text-4xl font-extrabold text-purple-700 my-3">
+            HKD ${formatted}
+          </p>
+          <p className="text-sm text-gray-600">
+            Please confirm if you wish to proceed with this loan.
+          </p>
+        </div>
+
+        {/* Terms & Conditions simulation */}
+        <div className="bg-white rounded-2xl shadow-sm p-5 text-sm leading-relaxed text-gray-700">
+          <h3 className="font-semibold mb-2 text-gray-800">Terms & Conditions</h3>
+          <p className="mb-2">
+            By confirming this loan, you agree to the terms governed by DSB Pay, including
+            repayment obligations and interest schedules communicated to you in the final
+            loan agreement.
+          </p>
+          <p className="mb-2">
+            The loan amount will be disbursed to your DSB Pay account upon confirmation.
+            Interest is charged daily, and repayment will be automatically deducted
+            according to your chosen repayment plan.
+          </p>
+          <p className="mb-2">
+            Late or missed payments may result in additional fees or affect your credit
+            rating maintained by TransUnion (TU). You are encouraged to review all loan
+            details carefully before proceeding.
+          </p>
+          <p className="mb-2">
+            For any inquiries regarding early repayment, charges, or account closure,
+            please contact DSB Pay Customer Support.
+          </p>
+          <p className="mt-3 text-gray-500 text-xs">
+            This loan agreement is subject to the prevailing laws and regulations of Hong
+            Kong. By clicking “Confirm,” you acknowledge that you have read and understood
+            all the above terms.
+          </p>
+        </div>
+      </div>
+
+      {/* Footer buttons */}
+      <div className="p-4 bg-white border-t border-gray-200 flex items-center space-x-3">
         <button
-          className="w-1/3 py-4 rounded-full text-gray-700 font-bold bg-gray-200 hover:bg-gray-300 transition duration-150"
-          onClick={onCancel}>
+          className="w-1/3 py-4 rounded-full text-gray-700 font-semibold bg-gray-200 hover:bg-gray-300 active:scale-95 transition duration-150"
+          onClick={onCancel}
+        >
           Cancel
         </button>
         <button
-          className="w-2/3 py-4 rounded-full text-white font-bold bg-purple-600 hover:bg-purple-700 transition duration-150"
-          onClick={onConfirm}>
-          Confirm & Withdraw
+          className="w-2/3 py-4 rounded-full text-white font-bold bg-purple-600 hover:bg-purple-700 active:scale-95 transition duration-150"
+          onClick={onConfirm}
+        >
+          Confirm
         </button>
       </div>
     </div>
