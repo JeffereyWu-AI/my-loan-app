@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 // 顏色定義 
 // 我們將在 Tailwind 中使用這些
@@ -13,6 +13,92 @@ const COLORS = {
   green: '#10B981',
   orange: '#F59E0B',
   red: '#EF4444',
+};
+
+// ---------------------------------
+// 模擬數據庫與算法 (移植自 Python)
+// ---------------------------------
+const LOAN_DB = [
+  // Loan Amount: 10,000
+  { age: 24, tu_score: "A", income: 50000, purpose: "Travel", loan_amount: 10000, tenor: 6 },
+  { age: 28, tu_score: "B", income: 28000, purpose: "Tax", loan_amount: 10000, tenor: 12 },
+  { age: 30, tu_score: "B", income: 22000, purpose: "Shopping", loan_amount: 10000, tenor: 18 },
+  { age: 35, tu_score: "C", income: 16000, purpose: "Emergency", loan_amount: 10000, tenor: 24 },
+  { age: 45, tu_score: "D", income: 12000, purpose: "Medical", loan_amount: 10000, tenor: 36 },
+  { age: 50, tu_score: "E", income: 10000, purpose: "Debt Consol", loan_amount: 10000, tenor: 48 },
+  { age: 60, tu_score: "E", income: 8000,  purpose: "Daily Exp", loan_amount: 10000, tenor: 60 },
+
+  // Loan Amount: 20,000
+  { age: 32, tu_score: "A", income: 65000, purpose: "Investment", loan_amount: 20000, tenor: 6 },
+  { age: 29, tu_score: "A", income: 40000, purpose: "Wedding", loan_amount: 20000, tenor: 12 },
+  { age: 33, tu_score: "B", income: 30000, purpose: "Education", loan_amount: 20000, tenor: 18 },
+  { age: 27, tu_score: "C", income: 25000, purpose: "Travel", loan_amount: 20000, tenor: 24 },
+  { age: 42, tu_score: "C", income: 18000, purpose: "Renovation", loan_amount: 20000, tenor: 36 },
+  { age: 55, tu_score: "D", income: 14000, purpose: "Medical", loan_amount: 20000, tenor: 48 },
+  { age: 25, tu_score: "E", income: 12000, purpose: "Debt Consol", loan_amount: 20000, tenor: 60 },
+
+  // Loan Amount: 50,000
+  { age: 38, tu_score: "A", income: 90000, purpose: "Bridge Loan", loan_amount: 50000, tenor: 6 },
+  { age: 31, tu_score: "A", income: 60000, purpose: "Tax", loan_amount: 50000, tenor: 12 },
+  { age: 35, tu_score: "B", income: 45000, purpose: "Wedding", loan_amount: 50000, tenor: 18 },
+  { age: 40, tu_score: "B", income: 38000, purpose: "Renovation", loan_amount: 50000, tenor: 24 },
+  { age: 45, tu_score: "C", income: 30000, purpose: "Car", loan_amount: 50000, tenor: 36 },
+  { age: 28, tu_score: "C", income: 22000, purpose: "Business", loan_amount: 50000, tenor: 48 },
+  { age: 50, tu_score: "D", income: 18000, purpose: "Medical", loan_amount: 50000, tenor: 60 },
+  { age: 46, tu_score: "E", income: 16000, purpose: "Debt Consol", loan_amount: 50000, tenor: 60 }
+];
+
+const SCORE_MAP = { "A": 5, "B": 4, "C": 3, "D": 2, "E": 1 };
+
+
+// ---------------------------------
+// 推薦算法函數 
+// ---------------------------------
+const getRecommendedTenors = (amount, userScore, userIncome) => {
+  const targetAmount = amount;
+  const targetScoreVal = SCORE_MAP[userScore] || 0;
+  const targetIncome = parseInt(userIncome, 10);
+
+  // 1. 篩選金額
+  let candidates = LOAN_DB.filter(c => c.loan_amount === targetAmount);
+  if (candidates.length === 0) candidates = [...LOAN_DB]; 
+
+  // 2. 排序 (找最接近的 profile 來推薦 Tenor)
+  candidates.sort((a, b) => {
+    const scoreDiffA = Math.abs((SCORE_MAP[a.tu_score] || 0) - targetScoreVal);
+    const scoreDiffB = Math.abs((SCORE_MAP[b.tu_score] || 0) - targetScoreVal);
+    
+    if (scoreDiffA !== scoreDiffB) return scoreDiffA - scoreDiffB;
+    
+    const incomeDiffA = Math.abs(a.income - targetIncome);
+    const incomeDiffB = Math.abs(b.income - targetIncome);
+    return incomeDiffA - incomeDiffB;
+  });
+
+  // 3. 定義利率配置表 (Base + Slope)
+  const RATE_CONFIG = {
+    "A": { base: 2.80, slope: 0.04 }, 
+    "B": { base: 5.50, slope: 0.06 }, 
+    "C": { base: 10.00, slope: 0.10 },
+    "D": { base: 16.00, slope: 0.15 },
+    "E": { base: 24.00, slope: 0.20 }
+  };
+
+  // 4. 計算並返回結果
+  return candidates.slice(0, 3).map(item => {
+    // 🔴 修正點在此：
+    // 之前是寫 RATE_CONFIG[item.tu_score] (用了資料庫那行的 Score)
+    // 現在改為 RATE_CONFIG[userScore] (用登入用戶的 Score)
+    const config = RATE_CONFIG[userScore] || { base: 30.0, slope: 0.5 };
+    
+    // 計算利率
+    const calculatedRate = config.base + (item.tenor * config.slope);
+
+    return {
+      tenor: item.tenor,
+      interestRate: calculatedRate.toFixed(2)
+    };
+  });
 };
 
 // ---------------------------------
@@ -131,6 +217,19 @@ const IconSpinner = (props) => (
   </svg>
 );
 
+const IconCalendar = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+    <line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line>
+    <line x1="3" y1="10" x2="21" y2="10"></line>
+  </svg>
+);
+
+const IconSparkles = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+  </svg>
+);
 
 // ---------------------------------
 // 屏幕組件
@@ -301,14 +400,16 @@ const ConsentScreen = ({ onAgree, onCancel }) => {
   );
 };
 
+
 /**
- * 貸款詳情頁
+ * Loan Details Page
  */
 const LoanDetailsScreen = ({ onConfirm, user }) => {
   const [selectedAmount, setSelectedAmount] = useState(null);
+  const [loanPurpose, setLoanPurpose] = useState('');
   const loanOptions = [10000, 20000, 50000];
 
-  // 根據登入用戶決定身份證資料
+  // Map user ID info
   const idCardMap = {
     'Chan Tai Man': 'A123***(4)',
     'Jackey Ng': 'B456***(7)',
@@ -317,50 +418,88 @@ const LoanDetailsScreen = ({ onConfirm, user }) => {
   const userName = user?.name || 'Unknown User';
   const idCard = idCardMap[userName] || '********';
 
+  // Whether “Confirm” button is active
+  const canConfirm = selectedAmount && loanPurpose.trim().length > 0;
+
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 bg-white border-b border-gray-100">
         <h2 className="text-lg font-bold text-center">Apply for Loan</h2>
       </div>
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-100">
 
-        {/* 用戶信息 */}
+      <div className="flex-1 overflow-y-auto p-4 bg-gray-100">
+        {/* User Information */}
         <div className="bg-white rounded-lg p-4 mb-4 shadow-sm">
           <InfoRow label="Full Name" value={userName} />
           <InfoRow label="Hong Kong ID" value={idCard} />
         </div>
 
-        {/* 貸款金額選擇 */}
+        {/* Loan Amount Selection */}
         <div className="mt-4">
-          <h3 className="text-base font-semibold text-gray-700 mb-3">Select Loan Amount</h3>
+          <h3 className="text-base font-semibold text-gray-700 mb-3">
+            Select Loan Amount
+          </h3>
           {loanOptions.map((amount) => (
             <button
               key={amount}
               className={`flex justify-between items-center w-full bg-white p-5 rounded-lg mb-3 border ${
-                selectedAmount === amount ? 'border-purple-600 bg-purple-50' : 'border-gray-200'
+                selectedAmount === amount
+                  ? 'border-purple-600 bg-purple-50'
+                  : 'border-gray-200'
               }`}
-              onClick={() => setSelectedAmount(amount)}>
-              <p className={`text-lg font-bold ${
-                  selectedAmount === amount ? 'text-purple-700' : 'text-gray-800'
-                }`}>
+              onClick={() => setSelectedAmount(amount)}
+            >
+              <p
+                className={`text-lg font-bold ${
+                  selectedAmount === amount
+                    ? 'text-purple-700'
+                    : 'text-gray-800'
+                }`}
+              >
                 HKD ${new Intl.NumberFormat('en-US').format(amount)}
               </p>
-              <IconChevronRight className={`h-5 w-5 ${
-                  selectedAmount === amount ? 'text-purple-700' : 'text-gray-400'
-                }`} />
+              <IconChevronRight
+                className={`h-5 w-5 ${
+                  selectedAmount === amount
+                    ? 'text-purple-700'
+                    : 'text-gray-400'
+                }`}
+              />
             </button>
           ))}
         </div>
+
+        {/* Loan Purpose Input */}
+        <div className="mt-6">
+          <h3 className="text-base font-semibold text-gray-700 mb-2">
+            Loan Purpose
+          </h3>
+          <input
+            type="text"
+            placeholder="e.g. Home renovation, Education, Travel..."
+            value={loanPurpose}
+            onChange={(e) => setLoanPurpose(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:outline-none"
+          />
+          {loanPurpose.trim().length === 0 && (
+            <p className="text-xs text-gray-500 mt-1">
+              Please specify what the loan will be used for.
+            </p>
+          )}
+        </div>
       </div>
 
-      {/* 底部確認按鈕 */}
+      {/* Footer: Confirm Button */}
       <div className="p-4 bg-white border-t border-gray-100">
         <button
-          className={`w-full py-4 rounded-full text-white font-bold ${
-            !selectedAmount ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'
-          }`}
-          disabled={!selectedAmount}
-          onClick={() => onConfirm(selectedAmount)}>
+          className={`w-full py-4 rounded-full font-bold text-white ${
+            canConfirm
+              ? 'bg-purple-600 hover:bg-purple-700'
+              : 'bg-gray-400 cursor-not-allowed'
+          } transition duration-150`}
+          disabled={!canConfirm}
+          onClick={() => onConfirm({ selectedAmount, loanPurpose })}
+        >
           Confirm
         </button>
       </div>
@@ -392,34 +531,185 @@ const ProcessingScreen = ({ processingStep }) => {
 };
 
 
+// ---------------------------------
+// ✅ Tenor Selection Screen 
+// ---------------------------------
+const TenorSelectionScreen = ({ amount, user, onConfirm, onCancel }) => {
+  const [selectedTenor, setSelectedTenor] = useState(null);
+
+  const userProfile = user?.name === 'Chan Tai Man' 
+    ? { score: 'A', income: 20000 }
+    : { score: 'B', income: 30000 };
+
+  const tenorOptions = useMemo(() => {
+    if (!amount) return [];
+    return getRecommendedTenors(amount, userProfile.score, userProfile.income);
+  }, [amount, userProfile]);
+
+  // 預設選中第一個 (AI 推薦的)，這樣體驗更好 (可選)
+  // useEffect(() => {
+  //   if (tenorOptions.length > 0 && !selectedTenor) {
+  //     setSelectedTenor(tenorOptions[0].tenor);
+  //   }
+  // }, [tenorOptions]);
+
+  const handleConfirmClick = () => {
+    if (!selectedTenor) return;
+    const selectedOption = tenorOptions.find(opt => opt.tenor === selectedTenor);
+    if (selectedOption) {
+      onConfirm(selectedTenor, selectedOption.interestRate);
+    }
+  };
+
+  return (
+    <div className="h-full flex flex-col bg-gray-100">
+      <div className="p-4 bg-white border-b border-gray-200">
+        <h2 className="text-lg font-bold text-center">Select Repayment Period</h2>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4">
+        {/* Loan Info Header */}
+        <div className="bg-purple-600 text-white rounded-xl p-5 mb-6 shadow-lg flex flex-col">
+          <div className="border-b border-white/20 pb-4 mb-4">
+            <p className="text-sm opacity-80 mb-1">Loan Amount</p>
+            <p className="text-3xl font-bold">HKD ${new Intl.NumberFormat('en-US').format(amount)}</p>
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="flex flex-col">
+              <p className="text-xs opacity-80 mb-0.5">TU Score</p>
+              <div className="flex items-baseline">
+                <span className="text-xl font-bold bg-white/20 px-2 py-0.5 rounded text-white backdrop-blur-sm">
+                  {userProfile.score}
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-col text-right">
+              <p className="text-xs opacity-80 mb-0.5">Monthly Income</p>
+              <p className="text-xl font-bold">
+                HKD ${new Intl.NumberFormat('en-US').format(userProfile.income)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-gray-600 font-semibold mb-3 px-1">Recommended Plans</p>
+        
+        <div className="space-y-4">
+          {tenorOptions.map((option, index) => {
+            // ✅ 判斷是否為第一個 (AI 推薦)
+            const isRecommended = index === 0;
+            const isSelected = selectedTenor === option.tenor;
+
+            // 動態樣式類別
+            let containerClasses = "w-full flex justify-between items-center p-5 rounded-xl border transition-all duration-200 relative ";
+            
+            if (isSelected) {
+              // 被選中時的樣式 (紫色高亮)
+              containerClasses += "bg-purple-50 border-purple-600 shadow-md transform scale-[1.01] z-10";
+            } else if (isRecommended) {
+              // 沒被選中，但是是 AI 推薦 (帶有金色邊框/光暈)
+              containerClasses += "bg-white border-orange-300 shadow-sm";
+            } else {
+              // 普通選項
+              containerClasses += "bg-white border-gray-200 hover:bg-gray-50";
+            }
+
+            return (
+              <button
+                key={option.tenor}
+                onClick={() => setSelectedTenor(option.tenor)}
+                className={containerClasses}
+              >
+                {/* ✅ AI 推薦標籤 (僅在第一個顯示) */}
+                {isRecommended && (
+                  <div className="absolute -top-3 left-4 bg-gradient-to-r from-orange-400 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md flex items-center">
+                    <IconSparkles className="w-3 h-3 mr-1 fill-current" />
+                    AI Pick
+                  </div>
+                )}
+
+                {/* 左側：Tenor */}
+                <div className="flex items-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 ${isSelected ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-500'}`}>
+                    <IconCalendar className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className={`font-bold text-lg ${isSelected ? 'text-purple-700' : 'text-gray-800'}`}>
+                      {option.tenor} Months
+                    </p>
+                    <p className="text-xs text-gray-500">Tenor</p>
+                  </div>
+                </div>
+
+                {/* 右側：Interest Rate */}
+                <div className="text-right">
+                  <p className={`font-bold text-xl ${isSelected ? 'text-purple-700' : 'text-gray-800'}`}>
+                    {option.interestRate}%
+                  </p>
+                  <p className="text-xs text-gray-500">APR</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="p-4 bg-white border-t border-gray-200 flex space-x-3">
+        <button
+          className="w-1/3 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-full transition duration-150"
+          onClick={onCancel}>
+          Cancel
+        </button>
+        <button
+          className={`w-2/3 py-3 font-bold rounded-full transition duration-150 text-white ${
+            selectedTenor 
+              ? 'bg-purple-600 hover:bg-purple-700' 
+              : 'bg-gray-400 cursor-not-allowed'
+          }`}
+          disabled={!selectedTenor}
+          onClick={handleConfirmClick}>
+          Confirm
+        </button>
+      </div>
+    </div>
+  );
+};
+
+
 /**
  * Loan Confirmation Page
  * — simulate real-world loan confirmation flow with T&C
  */
-const LoanConfirmScreen = ({ amount, onConfirm, onCancel }) => {
-  const formatted = new Intl.NumberFormat('en-US').format(amount);
+
+const LoanConfirmScreen = ({ amount, purpose, tenor, rate, onConfirm, onCancel }) => {
+  const formattedAmount = new Intl.NumberFormat('en-US').format(amount);
+
 
   return (
     <div className="h-full flex flex-col bg-gray-100">
-      {/* Header */}
       <div className="p-4 bg-white border-b border-gray-200">
         <h2 className="text-lg font-bold text-center text-gray-800">Confirm Loan</h2>
       </div>
-
-      {/* Main content */}
       <div className="flex-1 overflow-y-auto p-6 pb-24 text-gray-800">
-        {/* Approved amount highlight */}
         <div className="bg-white rounded-2xl shadow-sm p-6 text-center mb-5">
           <p className="text-base text-gray-500">Approved Loan Amount</p>
-          <p className="text-4xl font-extrabold text-purple-700 my-3">
-            HKD ${formatted}
-          </p>
-          <p className="text-sm text-gray-600">
-            Please confirm if you wish to proceed with this loan.
-          </p>
+          <p className="text-4xl font-extrabold text-purple-700 my-3">HKD ${formattedAmount}</p>
+          
+          <div className="grid grid-cols-2 gap-4 mt-6 border-t border-gray-100 pt-4 text-left">
+            <div>
+              <p className="text-xs text-gray-500">Loan Purpose</p>
+              <p className="font-medium text-gray-800">{purpose}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Tenor</p>
+              <p className="font-medium text-gray-800">{tenor} Months</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Interest Rate (APR)</p>
+              <p className="font-medium text-purple-600">{rate}%</p>
+            </div>
+          </div>
         </div>
-
-        {/* Terms & Conditions simulation */}
         <div className="bg-white rounded-2xl shadow-sm p-5 text-sm leading-relaxed text-gray-700">
           <h3 className="font-semibold mb-2 text-gray-800">Terms & Conditions</h3>
           <p className="mb-2">
@@ -431,46 +721,30 @@ const LoanConfirmScreen = ({ amount, onConfirm, onCancel }) => {
             The loan amount will be disbursed to your DSB Pay account upon confirmation.
             Interest is charged daily, and repayment will be automatically deducted
             according to your chosen repayment plan.
-          </p>
-          <p className="mb-2">
+           </p>
+           <p className="mb-2">
             Late or missed payments may result in additional fees or affect your credit
             rating maintained by TransUnion (TU). You are encouraged to review all loan
             details carefully before proceeding.
-          </p>
-          <p className="mb-2">
+           </p>
+           <p className="mb-2">
             For any inquiries regarding early repayment, charges, or account closure,
             please contact DSB Pay Customer Support.
-          </p>
-          <p className="mt-3 text-gray-500 text-xs">
+           </p>
+           <p className="mt-3 text-gray-500 text-xs">
             This loan agreement is subject to the prevailing laws and regulations of Hong
             Kong. By clicking “Confirm,” you acknowledge that you have read and understood
             all the above terms.
-          </p>
+           </p>
         </div>
       </div>
-
-      {/* Footer buttons */}
       <div className="p-4 bg-white border-t border-gray-200 flex items-center space-x-3">
-        <button
-          className="w-1/3 py-4 rounded-full text-gray-700 font-semibold bg-gray-200 hover:bg-gray-300 active:scale-95 transition duration-150"
-          onClick={onCancel}
-        >
-          Cancel
-        </button>
-        <button
-          className="w-2/3 py-4 rounded-full text-white font-bold bg-purple-600 hover:bg-purple-700 active:scale-95 transition duration-150"
-          onClick={onConfirm}
-        >
-          Confirm
-        </button>
+        <button className="w-1/3 py-4 rounded-full text-gray-700 font-semibold bg-gray-200 hover:bg-gray-300 transition duration-150" onClick={onCancel}>Cancel</button>
+        <button className="w-2/3 py-4 rounded-full text-white font-bold bg-purple-600 hover:bg-purple-700 transition duration-150" onClick={onConfirm}>Confirm</button>
       </div>
     </div>
   );
 };
-
-// ---------------------------------
-// 彈出式組件
-// ---------------------------------
 
 /**
  * 增值彈窗
@@ -546,6 +820,12 @@ export default function App() {
   const [balance, setBalance] = useState(1234.56); // 初始餘額
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedLoanAmount, setSelectedLoanAmount] = useState(0);
+  const [selectedLoanPurpose, setSelectedLoanPurpose] = useState('');
+  const [selectedLoanTenor, setSelectedLoanTenor] = useState(0);
+
+  // ✅ 1. 新增: 用於存儲選中的利率
+  const [selectedLoanRate, setSelectedLoanRate] = useState('0.00'); 
+
   const [processingStep, setProcessingStep] = useState('Checking TU Credit Record...');
   const [user, setUser] = useState(null); // 保存登入用戶物件 {name: string}
   const [error, setError] = useState('');
@@ -614,19 +894,20 @@ export default function App() {
       const approved = user?.name === 'Chan Tai Man';
       setProcessingStep('Checking TU Credit Record...');
       const timer1 = setTimeout(() => {
-        setProcessingStep('Processing Loan Application...');
+        setProcessingStep('AI Processing Loan Application...');
       }, 1500);
       const timer2 = setTimeout(() => {
         setProcessingStep(approved ? 'Loan Approved' : 'Loan Application Rejected');
-      }, 3000);
+      }, 4500);
+
       const timer3 = setTimeout(() => {
         if (approved) {
-          setCurrentScreen('LoanConfirm');
+          setCurrentScreen('TenorSelection');
         } else {
-          // 不批核就返回主畫面
           setCurrentScreen('Home');
         }
-      }, 4500);
+      }, 6000);
+
       return () => {
         clearTimeout(timer1);
         clearTimeout(timer2);
@@ -648,21 +929,28 @@ export default function App() {
   };
 
   // 3. 在貸款詳情頁點擊 "Confirm"
-  const handleConfirmLoan = (amount) => {
-    setSelectedLoanAmount(amount);
+  const handleConfirmLoan = ({ selectedAmount, loanPurpose }) => {
+    setSelectedLoanAmount(selectedAmount);
+    setSelectedLoanPurpose(loanPurpose); 
     setCurrentScreen('Processing');
+  };
+
+  // 處理 Tenor 選擇確認
+  const handleConfirmTenor = (tenor, rate) => {
+    setSelectedLoanTenor(tenor);
+    setSelectedLoanRate(rate); // 存儲利率
+    setCurrentScreen('LoanConfirm');
   };
 
 
   // 當貸款批核並確認時更新該用戶餘額
   const handleFinalConfirm = () => {
     if (!user?.name) return;
-    setBalances(prev => ({
-      ...prev,
-      [user.name]: (prev[user.name] || 0) + selectedLoanAmount,
-    }));
+    setBalances(prev => ({ ...prev, [user.name]: (prev[user.name] || 0) + selectedLoanAmount }));
     setCurrentScreen('Home');
     setSelectedLoanAmount(0);
+    setSelectedLoanTenor(0);
+    setSelectedLoanRate('0.00'); // ✅ 重置利率
   };
 
 
@@ -671,7 +959,9 @@ export default function App() {
   // 5. 處理取消貸款
   const handleCancelLoan = () => {
     setCurrentScreen('Home');
-    setSelectedLoanAmount(0); // 重置
+    setSelectedLoanAmount(0);
+    setSelectedLoanTenor(0);
+    setSelectedLoanRate('0.00'); // ✅ 重置利率
   };
 
   // 登出
@@ -698,10 +988,25 @@ export default function App() {
         return <LoanDetailsScreen onConfirm={handleConfirmLoan} user={user}/>;
       case 'Processing':
         return <ProcessingScreen processingStep={processingStep} />;
+
+      case 'TenorSelection': 
+        return (
+          <TenorSelectionScreen 
+            amount={selectedLoanAmount}
+            user={user}
+            onConfirm={handleConfirmTenor}
+            onCancel={handleCancelLoan}
+          />
+        );
+        
+
       case 'LoanConfirm':
         return (
           <LoanConfirmScreen
             amount={selectedLoanAmount}
+            purpose={selectedLoanPurpose} 
+            tenor={selectedLoanTenor} 
+            rate={selectedLoanRate} // ✅ 3. 將 rate 傳遞給 LoanConfirmScreen
             onConfirm={handleFinalConfirm}
             onCancel={handleCancelLoan}
           />
